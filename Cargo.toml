@@ -1,0 +1,7 @@
+[package]
+name = "nixjs"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+syntax = { git = "https://github.com/oxalica/nil" }

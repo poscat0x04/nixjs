@@ -1,17 +1,24 @@
-use std::fmt::Write;
+use std::fmt::{write, Write};
 
 use ast::{AstNode, HasBindings};
 use syntax::ast;
 
+// Get the identifier to the runtime method
+macro_rules! rt {
+    ($method:expr) => {
+        concat!("__12345_runtime.", $method)
+    };
+}
+
 macro_rules! thunk {
     ($e:expr, $x: stmt) => {{
-        $e.push_str("__12345_runtime.newThunk(() => ");
+        $e.push_str(concat!(rt!("newThunk"), "(() => "));
         $x
         $e.push_str(")");
     }};
 }
 
-fn codegen(expr: &ast::Expr) -> String {
+pub fn codegen(expr: &ast::Expr) -> String {
     let mut code = String::new();
     codegen_helper(expr, &mut code);
     code
@@ -99,22 +106,61 @@ fn attrset(attrset: &ast::AttrSet, buf: &mut String) {
 }
 
 fn binary_op(bin_op: &ast::BinaryOp, buf: &mut String) {
+    macro_rules! delegate_to_runtime {
+        ($method:expr) => {{
+            write!(buf, "{}(", rt!($method)).unwrap();
+            codegen_helper(&bin_op.lhs().unwrap(), buf);
+            buf.push(',');
+            codegen_helper(&bin_op.rhs().unwrap(), buf);
+            buf.push(')');
+        }};
+    }
     match bin_op.op_kind().unwrap() {
-        ast::BinaryOpKind::Imply => todo!(),
-        ast::BinaryOpKind::Or => todo!(),
-        ast::BinaryOpKind::And => todo!(),
-        ast::BinaryOpKind::Equal => todo!(),
-        ast::BinaryOpKind::NotEqual => todo!(),
-        ast::BinaryOpKind::Less => todo!(),
-        ast::BinaryOpKind::Greater => todo!(),
-        ast::BinaryOpKind::LessEqual => todo!(),
-        ast::BinaryOpKind::GreaterEqual => todo!(),
-        ast::BinaryOpKind::Update => todo!(),
-        ast::BinaryOpKind::Concat => todo!(),
-        ast::BinaryOpKind::Add => todo!(),
-        ast::BinaryOpKind::Sub => todo!(),
-        ast::BinaryOpKind::Mul => todo!(),
-        ast::BinaryOpKind::Div => todo!(),
+        ast::BinaryOpKind::Imply => {
+            delegate_to_runtime!("implies")
+        }
+        ast::BinaryOpKind::Or => {
+            delegate_to_runtime!("or")
+        }
+        ast::BinaryOpKind::And => {
+            delegate_to_runtime!("and")
+        }
+        ast::BinaryOpKind::Equal => {
+            delegate_to_runtime!("equals")
+        }
+        ast::BinaryOpKind::NotEqual => {
+            delegate_to_runtime!("notEquals")
+        }
+        ast::BinaryOpKind::Less => {
+            delegate_to_runtime!("lessThan")
+        }
+        ast::BinaryOpKind::Greater => {
+            delegate_to_runtime!("greaterThan")
+        }
+        ast::BinaryOpKind::LessEqual => {
+            delegate_to_runtime!("lessThanEqual")
+        }
+        ast::BinaryOpKind::GreaterEqual => {
+            delegate_to_runtime!("greaterThanEqual")
+        }
+        ast::BinaryOpKind::Update => {
+            delegate_to_runtime!("update")
+        }
+        ast::BinaryOpKind::Concat => {
+            delegate_to_runtime!("concat")
+        }
+        ast::BinaryOpKind::Add => {
+            delegate_to_runtime!("add")
+        }
+        ast::BinaryOpKind::Sub => {
+            delegate_to_runtime!("sub")
+        }
+        ast::BinaryOpKind::Mul => {
+            delegate_to_runtime!("mul")
+        }
+        ast::BinaryOpKind::Div => {
+            delegate_to_runtime!("div")
+        }
     }
 }
 
@@ -202,5 +248,13 @@ fn codegen_helper(expr: &ast::Expr, buf: &mut String) {
         ast::Expr::String(string_) => string(string_, buf),
         ast::Expr::UnaryOp(unary_op_) => unary_op(unary_op_, buf),
         ast::Expr::With(with_) => with(with_, buf),
+    }
+}
+
+#[cfg(test)]
+mod test {
+    #[test]
+    fn test() {
+        println!(rt!("abc"))
     }
 }

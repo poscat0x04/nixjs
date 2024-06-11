@@ -196,7 +196,7 @@ fn let_in(let_in: &ast::LetIn, buf: &mut String) {
 fn list(list: &ast::List, buf: &mut String) {
     buf.push('[');
     for e in list.elements() {
-        codegen_helper(&e, buf);
+        thunk!(buf, codegen_helper(&e, buf));
         buf.push(',');
     }
     buf.push(']');

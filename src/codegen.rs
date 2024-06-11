@@ -194,7 +194,12 @@ fn let_in(let_in: &ast::LetIn, buf: &mut String) {
 }
 
 fn list(list: &ast::List, buf: &mut String) {
-    todo!()
+    buf.push('[');
+    for e in list.elements() {
+        codegen_helper(&e, buf);
+        buf.push(',');
+    }
+    buf.push(']');
 }
 
 fn literal(lit: &ast::Literal, buf: &mut String) {

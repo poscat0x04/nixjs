@@ -1,3 +1,6 @@
+/// Codegen:
+/// The function `codegen` (and `codegen_helper`) compiles a Nix AST into a JavaScript expression that evaluates
+/// to the WHNF of the Nix code.
 use std::fmt::{write, Write};
 
 use ast::{AstNode, HasBindings};
@@ -169,7 +172,13 @@ fn has_attr(has_attr: &ast::HasAttr, buf: &mut String) {
 }
 
 fn if_then_else(if_then_else: &ast::IfThenElse, buf: &mut String) {
-    todo!()
+    buf.push_str("(() => {if (");
+    codegen_helper(&if_then_else.condition().unwrap(), buf);
+    buf.push_str(") { return ");
+    codegen_helper(&if_then_else.then_body().unwrap(), buf);
+    buf.push_str("} else { return ");
+    codegen_helper(&if_then_else.else_body().unwrap(), buf);
+    buf.push_str("}})()");
 }
 
 fn indent_string(indent_string: &ast::IndentString, buf: &mut String) {
